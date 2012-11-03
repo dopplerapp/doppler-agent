@@ -14,6 +14,7 @@ from doppler.utils import trim_docstring
 api_key = os.getenv("DOPPLER_API_KEY")
 hostname = socket.gethostname()
 machine_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, hostname))
+endpoint = os.getenv("DOPPLER_ENDPOINT")
 
 # Create a metrics collector
 collector = Collector(api_key, machine_id, hostname)

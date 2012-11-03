@@ -4,7 +4,7 @@ import doppler
 from setuptools import setup, find_packages
 
 setup(
-    name='doppler',
+    name='doppler-agent',
     version=doppler.__version__,
     description="The server monitoring agent for doppler.com collects data about resource usage on your machines",
     author='Doppler',

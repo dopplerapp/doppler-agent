@@ -50,14 +50,17 @@ class MetricsStore:
                 self.items.remove(item)
 
 class Collector:
-    METRICS_ENDPOINT = "http://localhost:8000/"
+    DEFAULT_METRICS_ENDPOINT = "http://notify.doppler.io/"
     DEFAULT_SEND_INTERVAL = 30
 
-    def __init__(self, api_key, machine_id, hostname):
+    def __init__(self, api_key, machine_id, hostname, endpoint):
         # Identifiers
         self.api_key = api_key
         self.machine_id = machine_id
         self.hostname = hostname
+
+        # Where to send to
+        self.endpoint = endpoint or self.DEFAULT_METRICS_ENDPOINT
 
         # List of active metrics providers
         self._active_providers = None
