@@ -17,7 +17,7 @@ machine_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, hostname))
 endpoint = os.getenv("DOPPLER_ENDPOINT")
 
 # Create a metrics collector
-collector = Collector(api_key, machine_id, hostname)
+collector = Collector(api_key, machine_id, hostname, endpoint)
 
 # Print startup banner
 print "Starting Doppler Monitoring Agent v%s" % version
