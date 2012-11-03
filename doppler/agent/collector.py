@@ -127,7 +127,7 @@ class Collector:
                 "Content-Type": "application/json"
             }
 
-            request = urllib2.Request(self.METRICS_ENDPOINT, body, headers)
+            request = urllib2.Request(self.endpoint, body, headers)
             response = urllib2.urlopen(request)
 
             # Check if POST was successful
