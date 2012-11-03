@@ -132,7 +132,7 @@ class Collector:
 
             # Check if POST was successful
             if response.code == 200:
-                logger.info("Sent payload to %s (%s metrics, %s metaData)" % (self.METRICS_ENDPOINT, len(completed_metrics), len(completed_metadata)))
+                logger.info("Sent payload to %s (%s metrics, %s metaData)" % (self.endpoint, len(completed_metrics), len(completed_metadata)))
 
                 # Remove sent metrics from the metrics stores
                 self.metrics_store.remove(completed_metrics)
