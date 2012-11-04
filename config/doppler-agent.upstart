@@ -1,0 +1,15 @@
+#
+# Doppler metrics collection agent configuration
+# See http://doppler.io for details
+#
+
+[doppler-agent]
+
+# Your doppler.io api key
+api_key = "${api_key}"
+
+# How frequently to send machine metrics to our servers
+send_interval = 60
+
+# The endpoint to send metrics to
+endpoint = "http://notify.doppler.io"

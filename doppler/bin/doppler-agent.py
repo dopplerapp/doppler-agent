@@ -10,6 +10,12 @@ from doppler import __version__ as version
 from doppler.agent.collector import Collector
 from doppler.utils import trim_docstring
 
+# TODO:JS Check for command-line flags
+# TODO:JS Check for config file
+# TODO:JS Quit with warning if no config file found (explain about doppler-configure.py)
+# TODO:JS Quit with warning if no api key in config file, or api key doesnt match [0-9a-zA-Z]{4,8}
+# TODO:JS Load api_key, endpoint, send_interval from config file
+
 # Load useful machine info
 api_key = os.getenv("DOPPLER_API_KEY")
 hostname = socket.gethostname()
