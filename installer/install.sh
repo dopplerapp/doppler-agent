@@ -65,7 +65,7 @@ track_error() {
 install_packages() {
   if [ "$DISTRO" == 'debian' ]; then
     if ! dpkg-query -s $1 >> /dev/null ; then
-      sudo apt-get -y install python sysstat
+      sudo apt-get -y install $1
     fi
   elif [ "$DISTRO" == 'rpm' ]; then
     if ! rpm --quiet -q $1 ; then
