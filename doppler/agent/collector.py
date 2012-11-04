@@ -53,7 +53,7 @@ class Collector:
     DEFAULT_METRICS_ENDPOINT = "http://notify.doppler.io/"
     DEFAULT_SEND_INTERVAL = 30
 
-    def __init__(self, api_key, machine_id, hostname, endpoint, send_interval):
+    def __init__(self, api_key, machine_id, hostname, endpoint=DEFAULT_METRICS_ENDPOINT, send_interval=DEFAULT_SEND_INTERVAL):
         # Identifiers
         self.api_key = api_key
         self.machine_id = machine_id

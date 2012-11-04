@@ -17,13 +17,14 @@ from doppler.utils import trim_docstring
 # TODO:JS Load api_key, endpoint, send_interval from config file
 
 # Load useful machine info
-api_key = os.getenv("DOPPLER_API_KEY")
+api_key = os.getenv("API_KEY")
 hostname = socket.gethostname()
 machine_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, hostname))
-endpoint = os.getenv("DOPPLER_ENDPOINT")
+endpoint = os.getenv("ENDPOINT")
+send_interval = os.getenv("SEND_INTERVAL")
 
 # Create a metrics collector
-collector = Collector(api_key, machine_id, hostname, endpoint)
+collector = Collector(api_key, machine_id, hostname, endpoint, send_interval)
 
 # Print startup banner
 print "Starting Doppler Monitoring Agent v%s" % version

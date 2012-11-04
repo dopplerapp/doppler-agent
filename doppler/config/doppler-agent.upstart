@@ -1,15 +1,13 @@
-#
-# Doppler metrics collection agent configuration
-# See http://doppler.io for details
-#
+#!upstart
+description "Doppler metrics collection agent"
+author      "Doppler <agent@doppler.io>"
 
-[doppler-agent]
+start on (filesystem and net-device-up IFACE=lo)
+stop on shutdown
 
-# Your doppler.io api key
-api_key = "${api_key}"
+respawn
+respawn limit 99 5
 
-# How frequently to send machine metrics to our servers
-send_interval = 60
-
-# The endpoint to send metrics to
-endpoint = "http://notify.doppler.io"
+script
+    exec start-stop-daemon --start --quiet --exec  /usr/bin/doppler-agent.py -- --config /etc/doppler-agent.conf
+end script
