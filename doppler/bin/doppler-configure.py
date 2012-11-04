@@ -74,10 +74,10 @@ if options.generate_config:
             with open(DEFAULT_CONFIG_PATH, "w") as f:
                 f.write(config)
         else:
-            print "Error! We don't have permission to write to %s, try running as sudo." % DEFAULT_CONFIG_PATH
+            sys.exit("Error! We don't have permission to write to %s, try running as sudo." % DEFAULT_CONFIG_PATH)
 
     else:
-        print "Can't generate config file without an API key"
+        sys.exit("Can't generate config file without an API key")
 
 # Install startup scripts
 if options.install_startup_scripts:
@@ -86,9 +86,9 @@ if options.install_startup_scripts:
         if can_write_file(DEFAULT_UPSTART_PATH):
             shutil.copyfile(os.path.join(CONFIG_TEMPLATES_PATH, "doppler-agent.upstart"), DEFAULT_UPSTART_PATH)
         else:
-            print "Error! We don't have permission to write to %s, try running as sudo." % DEFAULT_UPSTART_PATH
+            sys.exit("Error! We don't have permission to write to %s, try running as sudo." % DEFAULT_UPSTART_PATH)
     else:
-        print "Error! We currently only support starting the agent with upstart"
+        sys.exit("Error! We currently only support starting the agent with upstart")
 
 # Start the agent
 if options.start_agent:
@@ -96,9 +96,9 @@ if options.start_agent:
         if os.path.isfile(DEFAULT_UPSTART_PATH):
             try:
                 subprocess.check_call(["start", "doppler-agent"])
-            except CalledProcessError as e:
-                print "Got bad return code from upstart, process probably didn't start"
+            except subprocess.CalledProcessError as e:
+                sys.exit("Got bad return code from upstart, process probably didn't start")
         else:
-            print "Error! Couldn't find doppler-agent upstart script, try running with --generate-startup-scripts"
+            sys.exit("Error! Couldn't find doppler-agent upstart script, try running with --generate-startup-scripts")
     else:
-        print "Error! We currently only support starting the agent with upstart"
+        sys.exit("Error! We currently only support starting the agent with upstart")

@@ -124,7 +124,9 @@ fi
 # Run initial agent configuration
 track_progress "configuring-agent" "Running initial agent configuration"
 if command_exists doppler-configure.py ; then
-  sudo doppler-configure.py
+  sudo doppler-configure.py --api-key $API_KEY \
+                            --generate-config \
+                            --install-startup-scripts
 
   if [ $? -ne 0 ] ; then
     track_error "Couldn't configure the agent (doppler-configure failed)"
@@ -134,8 +136,10 @@ else
 fi
 
 # Start Doppler agent
-# track_progress "starting-agent" "Starting Doppler agent"
+track_progress "starting-agent" "Starting Doppler agent"
+sudo doppler-configure.py --start-agent
 
-# TODO:JS should doppler-configure start the agent? it knows about upstart vs init.d
-
+# TODO:JS Check agent is running ok
 # TODO:JS Notify the server that the installer is finished
+
+echo "INSTALLED!!!"
