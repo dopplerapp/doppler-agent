@@ -17,6 +17,7 @@
 VERSION="0.1.0"
 API_KEY=${API_KEY:-"YOUR-API-KEY-HERE"}
 PROGRESS_SERVER=${PROGRESS_SERVER:-"http://get.doppler.io"}
+PROGRESS_URL="$PROGRESS_SERVER/$API_KEY"
 
 # Check if a file exists
 file_exists() {
@@ -35,25 +36,32 @@ matches_regex() {
   fi
 }
 
-# Show an install banner
-banner() {
-  printf "\e[1m#\n# %s\n# \e[0m\n\n" "Doppler monitoring agent installer v$VERSION"
-  printf "This script downloads the Doppler agent and any dependencies\n"
-  printf "and starts the monitoring agent on your machine.\n\n"
+# Notify our server about installer progress
+notify_server() {
+  if command_exists curl ; then
+    message_type=$1
+    shift
+
+    extra_params=""
+    for var in "$@" ; do
+      extra_params+=" --data-urlencode \"$var\""
+    done
+
+    eval "curl -s -d \"hostname=$HOSTNAME&type=$message_type\" $extra_params $PROGRESS_URL" >> /dev/null
+  fi
 }
 
 # Send installer progress to our servers and print it
 track_progress() {
-  if command_exists curl ; then
-    curl -s -d "apiKey=$API_KEY&action=$1&hostname=$HOSTNAME" \
-    $PROGRESS_SERVER/install/update-progress >> /dev/null
-  fi
+  notify_server "progress" "action=$1"
 
   printf "\e[32m%s\e[0m %s\n" "***" "$2"
 }
 
 # Send installer error to our servers and print it
 track_error() {
+  notify_server "error" "message=$1"
+
   printf "\e[31m%s\e[0m %s\n\n" "!!!" "$1"
   printf "\e[31m%s\n%s\e[0m\n" "The Doppler installer failed!" \
   "Check out http://doppler.io/docs or email us at support@doppler.io for help."
@@ -75,7 +83,9 @@ install_packages() {
 }
 
 # Start your engines...
-banner
+printf "\e[1m#\n# %s\n# \e[0m\n\n" "Doppler monitoring agent installer v$VERSION"
+printf "This script downloads the Doppler agent and any dependencies\n"
+printf "and starts the monitoring agent on your machine.\n\n"
 track_progress "starting-installer" "Starting the Doppler installer"
 
 # Check if the api key looks valid
@@ -88,9 +98,9 @@ OS=$(uname -s)
 if [ "$OS" == "Linux" ] ; then
   true
 elif [ "$OS" == "Darwin" ] ; then
-  track_error "The Doppler agent doesn't currently support OSX"
+  track_error "The Doppler agent doesnt currently support OSX"
 else
-  track_error "The Doppler agent doesn't currently support Windows"
+  track_error "The Doppler agent doesnt currently support Windows"
 fi
 
 # Work out which package manager (if any) this machine uses
@@ -124,12 +134,14 @@ fi
 # Run initial agent configuration
 track_progress "configuring-agent" "Running initial agent configuration"
 if command_exists doppler-configure.py ; then
-  sudo doppler-configure.py --api-key $API_KEY \
-                            --generate-config \
-                            --install-startup-scripts
-
+  sudo doppler-configure.py --api-key $API_KEY --generate-config
   if [ $? -ne 0 ] ; then
     track_error "Couldn't configure the agent (doppler-configure failed)"
+  fi
+
+  sudo doppler-configure.py --install-startup-scripts
+  if [ $? -ne 0 ] ; then
+    track_error "Couldn't install startup scripts (doppler-configure failed)"
   fi
 else
   track_error "Couldn't configure the agent (doppler-configure missing)"
@@ -138,8 +150,15 @@ fi
 # Start Doppler agent
 track_progress "starting-agent" "Starting Doppler agent"
 sudo doppler-configure.py --start-agent
+if [ $? -ne 0 ] ; then
+  track_error "Couldn't start the agent (doppler-configure failed)"
+fi
 
-# TODO:JS Check agent is running ok
-# TODO:JS Notify the server that the installer is finished
+# Check agent is running ok
+pgrep doppler-agent.py || track_error "Couldn't start the agent"
 
-echo "INSTALLED!!!"
+# Notify the server that the installer is finished
+notify_server "complete"
+printf "\n\n\e[32m%s\n%s\e[0m" \
+  "The Doppler monitoring agent is installed and running." \
+  "Check http://doppler.io to view your dashboard."
