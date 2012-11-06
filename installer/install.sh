@@ -3,7 +3,7 @@
 #
 # Doppler Agent Installer
 # http://doppler.io
-# 
+#
 # The source for this installer can be found here:
 # https://github.com/dopplerapp/doppler-installer
 #
@@ -111,7 +111,7 @@ elif file_exists /etc/redhat-release ; then
   DISTRO='rpm'
 elif file_exists /etc/system-release ; then
   DISTRO='rpm'
-else 
+else
   track_error "Your linux distro is not currently supported by this installer"
 fi
 
