@@ -66,7 +66,7 @@ track_error() {
   printf "\e[31m%s\n%s\e[0m\n" "The Doppler installer failed!" \
   "Check out http://doppler.io/docs or email us at support@doppler.io for help."
 
-  exit 1``
+  exit 1
 }
 
 # Install packages using the package manager on this machine
