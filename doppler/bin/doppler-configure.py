@@ -41,6 +41,15 @@ parser.add_option(
 )
 (options, args) = parser.parse_args()
 
+def run_silently(command):
+    worked = True
+    with open(os.devnull, "w") as devnull:
+        try:
+            subprocess.check_call(command.split(), stdout=devnull, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            worked = False
+    return worked
+
 def can_write_file(path):
     has_write_permission = False
     if os.path.isfile(path):
@@ -94,9 +103,8 @@ if options.install_startup_scripts:
 if options.start_agent:
     if machine_uses_upstart():
         if os.path.isfile(DEFAULT_UPSTART_PATH):
-            try:
-                subprocess.check_call(["start", "doppler-agent"])
-            except subprocess.CalledProcessError as e:
+            worked = run_silently("initctl start doppler-agent") or run_silently("initctl restart doppler-agent")
+            if not worked:
                 sys.exit("Got bad return code from upstart, process probably didn't start")
         else:
             sys.exit("Error! Couldn't find doppler-agent upstart script, try running with --generate-startup-scripts")

@@ -122,7 +122,7 @@ install_packages "python python-setuptools sysstat"
 # Download Doppler agent
 track_progress "downloading-agent" "Downloading latest Doppler agent"
 if command_exists easy_install ; then
-  sudo easy_install doppler-agent
+  sudo easy_install --script-dir=/usr/bin doppler-agent
 
   if [ $? -ne 0 ] ; then
     track_error "Could not install the Doppler python gem (easy_install failed)"
@@ -155,10 +155,12 @@ if [ $? -ne 0 ] ; then
 fi
 
 # Check agent is running ok
-pgrep doppler-agent.py || track_error "Couldn't start the agent"
+# TODO: Have doppler-agent (or start-stop-daemon) create a pidfile
+#       then check if that pid is active.
+# pgrep doppler-agent.py || track_error "Couldn't start the agent"
 
 # Notify the server that the installer is finished
 notify_server "complete"
-printf "\n\n\e[32m%s\n%s\e[0m" \
+printf "\n\n\e[32m%s\n%s\e[0m\n" \
   "The Doppler monitoring agent is installed and running." \
   "Check http://doppler.io to view your dashboard."
