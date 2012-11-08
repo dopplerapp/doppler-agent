@@ -52,6 +52,7 @@ class MetricsStore:
 class Collector:
     DEFAULT_METRICS_ENDPOINT = "http://notify.doppler.io/"
     DEFAULT_SEND_INTERVAL = 30
+    SMALL_INTERVAL_DURATION = 30 * 60
 
     def __init__(self, api_key, machine_id, hostname, endpoint=DEFAULT_METRICS_ENDPOINT, send_interval=DEFAULT_SEND_INTERVAL):
         # Identifiers
@@ -103,10 +104,15 @@ class Collector:
             provider.daemon = True
             provider.start()
         
+        self.start_time = int(time.time())
+        
         # Start the collector's "post to server" loop
         while True:
             # Pace yourselves
-            time.sleep(self.DEFAULT_SEND_INTERVAL)
+            if self.start_time + SMALL_INTERVAL_DURATION > int(time.time()):
+                time.sleep(min(self.send_interval, 10))
+            else:
+                time.sleep(self.send_interval)
 
             # Collect all metrics and metadata collected in the past
             time_collected = int(time.time())
