@@ -109,7 +109,7 @@ class Collector:
         # Start the collector's "post to server" loop
         while True:
             # Pace yourselves
-            if self.start_time + SMALL_INTERVAL_DURATION > int(time.time()):
+            if self.start_time + self.SMALL_INTERVAL_DURATION > int(time.time()):
                 time.sleep(min(self.send_interval, 10))
             else:
                 time.sleep(self.send_interval)
