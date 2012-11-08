@@ -18,6 +18,7 @@ VERSION="0.1.0"
 API_KEY=${API_KEY:-"YOUR-API-KEY-HERE"}
 PROGRESS_SERVER=${PROGRESS_SERVER:-"http://get.doppler.io"}
 PROGRESS_URL="$PROGRESS_SERVER/$API_KEY"
+APIKEY_CHECK_URL="$PROGRESS_URL/check"
 
 # Check if a file exists
 file_exists() {
@@ -47,10 +48,7 @@ notify_server() {
       extra_params+=" --data-urlencode \"$var\""
     done
     
-    response=$(eval "curl --write-out %{http_code} -s -o \"/dev/null\" -d \"hostname=$HOSTNAME&type=$message_type\" $extra_params $PROGRESS_URL")
-    if [ "$response" -ne "200" ] ; then
-      print_error_and_exit "Error from Doppler. Please check the URL is correct."
-    fi
+    eval "curl -s -o \"/dev/null\" -d \"hostname=$HOSTNAME&type=$message_type\" $extra_params $PROGRESS_URL"
   fi
 }
 
@@ -98,7 +96,13 @@ track_progress "starting-installer" "Starting the Doppler installer"
 
 # Check if the api key looks valid
 if ! matches_regex $API_KEY "^[0-9A-Za-z]{4,8}$"; then
-  track_error "The URL provided (get.doppler.io/$API_KEY) does not look valid"
+  print_error_and_exit "The ApiKey provided ($API_KEY) does not look valid"
+fi
+
+# Check the api key
+response=$(eval "curl --write-out %{http_code} -s -o \"/dev/null\" $APIKEY_CHECK_URL")
+if [ "$response" -ne "200" ] ; then
+  print_error_and_exit "The ApiKey provided ($API_KEY) does not look valid"
 fi
 
 # Work out which operating system this machine has
