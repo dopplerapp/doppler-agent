@@ -9,5 +9,5 @@ respawn
 respawn limit 99 5
 
 script
-    exec start-stop-daemon --start --quiet --exec  /usr/bin/doppler-agent.py -- --config /etc/doppler-agent.conf
+    exec /usr/bin/doppler-agent.py
 end script

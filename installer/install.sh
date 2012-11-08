@@ -74,13 +74,13 @@ print_error_and_exit() {
   printf "\e[31m%s\n%s\e[0m\n" "The Doppler installer failed!" \
   "Check out http://doppler.io/docs or email us at support@doppler.io for help."
 
-  exit 1``
+  exit 1
 }
 
 # Install packages using the package manager on this machine
 install_packages() {
   if [ "$DISTRO" == 'debian' ]; then
-    if ! dpkg-query -s $1 >> /dev/null ; then
+    if ! dpkg-query -s $1 > /dev/null 2&>1 ; then
       sudo apt-get -y install $1
     fi
   elif [ "$DISTRO" == 'rpm' ]; then
