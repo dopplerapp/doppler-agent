@@ -46,8 +46,11 @@ notify_server() {
     for var in "$@" ; do
       extra_params+=" --data-urlencode \"$var\""
     done
-
-    eval "curl -s -d \"hostname=$HOSTNAME&type=$message_type\" $extra_params $PROGRESS_URL" >> /dev/null
+    
+    response=$(eval "curl --write-out %{http_code} -s -o \"/dev/null\" -d \"hostname=$HOSTNAME&type=$message_type\" $extra_params $PROGRESS_URL")
+    if [ "$response" -ne "200" ] ; then
+      print_error_and_exit "Error from Doppler. Please check the URL is correct."
+    fi
   fi
 }
 
@@ -62,6 +65,11 @@ track_progress() {
 track_error() {
   notify_server "error" "message=$1"
 
+  print_error_and_exit "$1"
+}
+
+# Prints an error and terminates the script
+print_error_and_exit() {
   printf "\e[31m%s\e[0m %s\n\n" "!!!" "$1"
   printf "\e[31m%s\n%s\e[0m\n" "The Doppler installer failed!" \
   "Check out http://doppler.io/docs or email us at support@doppler.io for help."
@@ -90,7 +98,7 @@ track_progress "starting-installer" "Starting the Doppler installer"
 
 # Check if the api key looks valid
 if ! matches_regex $API_KEY "^[0-9A-Za-z]{4,8}$"; then
-  track_error "Your API key ($API_KEY) does not look valid"
+  track_error "The URL provided (get.doppler.io/$API_KEY) does not look valid"
 fi
 
 # Work out which operating system this machine has
