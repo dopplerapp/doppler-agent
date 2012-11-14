@@ -22,19 +22,36 @@ def exit_with_error(error):
   sys.exit(1)
 
 # Configure bugsnag
-bugsnag.configure(api_key = "9423ae3edbd1922973cd0dcc72109f44", ignore_classes=["KeyboardInterrupt"])
+bugsnag.configure(
+    api_key = "9423ae3edbd1922973cd0dcc72109f44",
+    ignore_classes=["KeyboardInterrupt"]
+)
 
-# Parse command line args
+# Parse command line options
 parser = OptionParser()
-parser.add_option("-c", "--config-file", dest="config_filename", default="/etc/doppler-agent.conf",
-                  help="the location of the doppler-agent.conf file", metavar="FILE")
-parser.add_option("-a", "--api-key", dest="api_key",
-                  help="the api key used to identify your account")
-parser.add_option("-e", "--endpoint", dest="endpoint",
-                  help="the endpoint used to contact doppler")
-parser.add_option("-s", "--send-interval", dest="send_interval", type="int",
-                  help="how often metrics are sent to doppler")
-
+parser.add_option(
+    "-c", "--config-file",
+    dest="config_filename",
+    default="/etc/doppler-agent.conf",
+    help="the location of the doppler-agent.conf file",
+    metavar="FILE"
+)
+parser.add_option(
+    "-a", "--api-key",
+    dest="api_key",
+    help="the api key used to identify your account"
+)
+parser.add_option(
+    "-e", "--endpoint",
+    dest="endpoint",
+    help="the endpoint used to contact doppler"
+)
+parser.add_option(
+    "-s", "--send-interval",
+    dest="send_interval",
+    type="int",
+    help="how often metrics are sent to doppler"
+)
 (options, args) = parser.parse_args()
 
 # Pull out command line arg values
