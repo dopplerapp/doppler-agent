@@ -62,10 +62,7 @@ send_interval = options.send_interval
 
 # Load the config file
 config = ConfigParser.RawConfigParser()
-try:
-  config.readfp(open(config_filename))
-except IOError:
-  exit_with_error("Config file not found. Please ensure that doppler-configure.py has been run to generate the configuration file")
+config.read(config_filename)
 
 if api_key is None:
   try:
