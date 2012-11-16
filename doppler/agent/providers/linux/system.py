@@ -7,7 +7,7 @@ class meminfo(Provider):
     """
 
     file = "/proc/meminfo"
-    provides = ["memory:total", "memory:free", "memory:active", "memory:inactive"]
+    provides = ["system.memory.total", "system.memory.free", "system.memory.active", "system.memory.inactive"]
     interval = 10
 
     MEMINFO_RE = r"^(\w+):\s+([0-9]+)\s*(kB)?"
@@ -20,11 +20,11 @@ class meminfo(Provider):
                 metric, value, unit = match.groups()
                 meminfo_metrics[metric] = "%s%s" % (value, unit)
         
-        self.metadata("memory:total", convert_data_unit(meminfo_metrics["MemTotal"], output_unit="M"))
+        self.metadata("system.memory.total", convert_data_unit(meminfo_metrics["MemTotal"], output_unit="M"))
     
-        self.metric("memory:free", convert_data_unit(meminfo_metrics["MemFree"], output_unit="M"))
-        self.metric("memory:active", convert_data_unit(meminfo_metrics["Active"], output_unit="M"))
-        self.metric("memory:inactive", convert_data_unit(meminfo_metrics["Inactive"], output_unit="M"))
+        self.metric("system.memory.free", convert_data_unit(meminfo_metrics["MemFree"], output_unit="M"))
+        self.metric("system.memory.active", convert_data_unit(meminfo_metrics["Active"], output_unit="M"))
+        self.metric("system.memory.inactive", convert_data_unit(meminfo_metrics["Inactive"], output_unit="M"))
 
 class mpstat(Provider):
     """
@@ -32,7 +32,7 @@ class mpstat(Provider):
     """
  
     command = "mpstat 1 3"
-    provides = ["cpu:user", "cpu:system", "cpu:idle"]
+    provides = ["system.cpu.user", "system.cpu.system", "system.cpu.idle"]
     interval = 5
 
     LEGEND_RE = r"(%usr|%user)"
@@ -48,9 +48,9 @@ class mpstat(Provider):
             legend = legend_line.split()[3:]
             data = data_line.split()[2:]
             
-            self.metric("cpu:user", value_for_column(legend, data, "%usr"))
-            self.metric("cpu:system", value_for_column(legend, data, "%sys"))
-            self.metric("cpu:idle", value_for_column(legend, data, "%idle"))
+            self.metric("system.cpu.user", value_for_column(legend, data, "%usr"))
+            self.metric("system.cpu.system", value_for_column(legend, data, "%sys"))
+            self.metric("system.cpu.idle", value_for_column(legend, data, "%idle"))
 
 class iostat(Provider):
     """
@@ -58,7 +58,7 @@ class iostat(Provider):
     """
     
     command = "iostat -d -x 1 3"
-    provides = ["io:read_throughput", "io:write_throughput", "io:wait_time", "io:service_time"]
+    provides = ["system.disk.read_throughput", "system.disk.write_throughput", "system.disk.wait_time", "system.disk.service_time"]
     interval = 5
 
     LEGEND_RE = r"Device:"
@@ -77,7 +77,7 @@ class iostat(Provider):
             read_throughput, (read_unit,) = value_for_regex_column(legend, data, r"r([kM])B\/s")
             write_throughput, (write_unit,) = value_for_regex_column(legend, data, r"w([kM])B\/s")
 
-            self.metric("io:read_throughput:%s" % device, convert_data_unit(read_throughput, input_unit=read_unit))
-            self.metric("io:write_throughput:%s" % device, convert_data_unit(write_throughput, input_unit=write_unit))
-            self.metric("io:wait_time:%s" % device, value_for_column(legend, data, "await"))
-            self.metric("io:service_time:%s" % device, value_for_column(legend, data, "svctm"))
+            self.metric("system.disk.read_throughput:%s" % device, convert_data_unit(read_throughput, input_unit=read_unit))
+            self.metric("system.disk.write_throughput:%s" % device, convert_data_unit(write_throughput, input_unit=write_unit))
+            self.metric("system.disk.wait_time:%s" % device, value_for_column(legend, data, "await"))
+            self.metric("system.disk.service_time:%s" % device, value_for_column(legend, data, "svctm"))
