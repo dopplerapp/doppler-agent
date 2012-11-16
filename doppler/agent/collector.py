@@ -54,7 +54,7 @@ class Collector:
     DEFAULT_SEND_INTERVAL = 30
     SMALL_INTERVAL_DURATION = 30 * 60
 
-    def __init__(self, api_key, machine_id, hostname, endpoint=DEFAULT_METRICS_ENDPOINT, send_interval=DEFAULT_SEND_INTERVAL):
+    def __init__(self, api_key, machine_id, hostname, endpoint=None, send_interval=None):
         # Identifiers
         self.api_key = api_key
         self.machine_id = machine_id
