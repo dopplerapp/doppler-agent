@@ -7,7 +7,26 @@ class meminfo(Provider):
     """
 
     file = "/proc/meminfo"
-    provides = ["system.memory.total", "system.memory.free", "system.memory.active", "system.memory.inactive"]
+    states = {
+        "system.memory.total" : {
+            "title": "Total Memory",
+            "unit": "MiB"
+        }
+    }
+    metrics = {
+        "system.memory.active": {
+            "title": "Active Memory",
+            "unit": "MiB"
+        },
+        "system.memory.inactive": {
+            "title": "Inactive Memory",
+            "unit": "MiB"
+        },
+        "system.memory.free": {
+            "title": "Free Memory",
+            "unit": "MiB"
+        }
+    }
     interval = 10
 
     MEMINFO_RE = r"^(\w+):\s+([0-9]+)\s*(kB)?"
@@ -20,11 +39,11 @@ class meminfo(Provider):
                 metric, value, unit = match.groups()
                 meminfo_metrics[metric] = "%s%s" % (value, unit)
         
-        self.metadata("system.memory.total", convert_data_unit(meminfo_metrics["MemTotal"], output_unit="M"))
+        self.state("system.memory.total", convert_data_unit(meminfo_metrics["MemTotal"], output_unit="MiB"))
     
-        self.metric("system.memory.free", convert_data_unit(meminfo_metrics["MemFree"], output_unit="M"))
-        self.metric("system.memory.active", convert_data_unit(meminfo_metrics["Active"], output_unit="M"))
-        self.metric("system.memory.inactive", convert_data_unit(meminfo_metrics["Inactive"], output_unit="M"))
+        self.metric("system.memory.free", convert_data_unit(meminfo_metrics["MemFree"], output_unit="MiB"))
+        self.metric("system.memory.active", convert_data_unit(meminfo_metrics["Active"], output_unit="MiB"))
+        self.metric("system.memory.inactive", convert_data_unit(meminfo_metrics["Inactive"], output_unit="MiB"))
 
 class mpstat(Provider):
     """
@@ -32,7 +51,20 @@ class mpstat(Provider):
     """
  
     command = "mpstat 1 3"
-    provides = ["system.cpu.user", "system.cpu.system", "system.cpu.idle"]
+    metrics = {
+        "system.cpu.user": {
+            "title": "CPU User",
+            "unit": "%"
+        },
+        "system.cpu.system": {
+            "title": "CPU System",
+            "unit": "%"
+        },
+        "system.cpu.idle": {
+            "title": "CPU Idle",
+            "unit": "%"
+        }
+    }
     interval = 5
 
     LEGEND_RE = r"(%usr|%user)"
@@ -58,7 +90,28 @@ class iostat(Provider):
     """
     
     command = "iostat -d -x 1 3"
-    provides = ["system.disk.read_throughput", "system.disk.write_throughput", "system.disk.wait_time", "system.disk.service_time"]
+    metrics = {
+        "system.disk.read_throughput": {
+            "title": "Disk Read Throughput",
+            "unit": "B/s",
+            "multi": True
+        },
+        "system.disk.write_throughput": {
+            "title": "Disk Write Throughput",
+            "unit": "B/s",
+            "multi": True
+        },
+        "system.disk.wait_time": {
+            "title": "Disk Wait Time",
+            "unit": "ms",
+            "multi": True
+        },
+        "system.disk.service_time": {
+            "title": "Disk Service Time",
+            "unit": "ms",
+            "multi": True
+        }
+    }
     interval = 5
 
     LEGEND_RE = r"Device:"

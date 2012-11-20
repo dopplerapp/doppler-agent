@@ -115,7 +115,18 @@ print "Hostname: %s" % hostname
 print
 print "Active metrics providers for your platform (%s)" % platform.system()
 for p in collector.active_providers():
-    print "%s\n    %s\n    Provides: %s" % (p.__name__, trim_docstring(p.__doc__), ", ".join(p.provides))
+    metrics = []
+    states = []
+    events = []
+    
+    if isinstance(p.metrics,dict):
+        metrics = p.metrics.keys()
+    if isinstance(p.states,dict):
+        states = p.states.keys()
+    if isinstance(p.events,dict):
+        events = p.events.keys()
+    
+    print "%s\n    %s\n    Metrics: %s, States: %s, Events: %s" % (p.__name__, trim_docstring(p.__doc__), ", ".join(metrics), ", ".join(states), ", ".join(events))
 print
 
 # Start the metrics collector

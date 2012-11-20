@@ -7,7 +7,22 @@ class iostat(Provider):
     """
 
     command = "iostat -C -w 3 -c 2"
-    provides = ["system.cpu.user", "system.cpu.system", "system.cpu.idle"]
+    
+    metrics = {
+        "system.cpu.user": {
+            "title": "CPU User",
+            "unit": "%"
+        },
+        "system.cpu.system": {
+            "title": "CPU System",
+            "unit": "%"
+        },
+        "system.cpu.idle": {
+            "title": "CPU Idle",
+            "unit": "%"
+        }
+    }
+    
     interval = 5
 
     def parser(self, io):
@@ -25,8 +40,18 @@ class top(Provider):
     CPU and memory statistics for the system and all running processes
     """
 
+    # TODO:SM We should really use vmstat as that is in bytes and we dont have to worry about MiB/MB
     command = "top -l 1"
-    provides = ["system.memory.used", "system.memory.free"]
+    metrics = {
+        "system.memory.used": {
+            "title": "Used Memory",
+            "unit": "MiB"
+        },
+        "system.memory.free": {
+            "title": "Free Memory",
+            "unit": "MiB"
+        }
+    }
     interval = 5
 
     PHYSMEM_RE = r"^PhysMem"
@@ -37,8 +62,8 @@ class top(Provider):
         if memory_line:
             wired, active, inactive, used, free = re.findall(self.MEMORY_VALUE_RE, memory_line)
 
-            self.metric("system.memory.used", convert_data_unit(used, output_unit="M"))
-            self.metric("system.memory.free", convert_data_unit(free, output_unit="M"))
+            self.metric("system.memory.used", convert_data_unit(used, output_unit="MiB"))
+            self.metric("system.memory.free", convert_data_unit(free, output_unit="MiB"))
 
 class sysctl(Provider):
     """
@@ -46,7 +71,12 @@ class sysctl(Provider):
     """
 
     command = "sysctl -a"
-    provides = ["system.memory.total"]
+    states = {
+        "system.memory.total": {
+            "title": "Total Memory",
+            "unit": "MiB"
+        }
+    }
     interval = 120
 
     MEMSIZE_RE = r"^hw\.memsize:\s*(\d+)$"
@@ -56,5 +86,5 @@ class sysctl(Provider):
             match = re.match(self.MEMSIZE_RE, l)
             if match:
                 total, = match.groups()
-                self.metadata("system.memory.total", convert_data_unit(total, output_unit="M"))
+                self.state("system.memory.total", convert_data_unit(total, output_unit="MiB"))
                 break
