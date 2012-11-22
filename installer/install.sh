@@ -47,14 +47,14 @@ notify_server() {
     for var in "$@" ; do
       extra_params+=" --data-urlencode \"$var\""
     done
-    
-    eval "curl -s -o \"/dev/null\" -d \"hostname=$HOSTNAME&type=$message_type\" $extra_params $PROGRESS_URL"
+
+    eval "curl -s -o \"/dev/null\" -X PUT -d \"hostname=$HOSTNAME&type=$message_type\" $extra_params $PROGRESS_URL"
   fi
 }
 
 # Send installer progress to our servers and print it
 track_progress() {
-  notify_server "progress" "action=$1"
+  notify_server "progress" "step=$1"
 
   printf "\e[32m%s\e[0m %s\n" "***" "$2"
 }
