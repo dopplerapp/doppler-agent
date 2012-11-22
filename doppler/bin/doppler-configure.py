@@ -70,6 +70,8 @@ if not (options.generate_config or options.install_startup_scripts or options.st
 
 # Generate config files
 if options.generate_config:
+    # TODO: Don't overwrite existing config files!!!
+
     # Check for --api-key command line flag
     if options.api_key:
         if can_write_file(DEFAULT_CONFIG_PATH):
