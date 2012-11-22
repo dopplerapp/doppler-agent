@@ -1,6 +1,41 @@
 import re
 from doppler.agent.providers import Provider, value_for_column, value_for_regex_column, convert_data_unit, first_matching_line
 
+class loadavg(Provider):
+    """
+    Load Average
+    """
+
+    file = "/proc/loadavg"
+    metrics = {
+        "system.load.1min": {
+            "title": "1 Minute",
+            "unit": "Load"
+        },
+        "system.load.5min": {
+            "title": "5 Minutes",
+            "unit": "Load"
+        },
+        "system.load.15min": {
+            "title": "15 Minutes",
+            "unit": "Load"
+        }
+    }
+    interval = 10
+
+    LOADAVG_RE = r"^([0-9]*\.?[0-9]*)\s+([0-9]*\.?[0-9]*)\s+([0-9]*\.?[0-9]*)\s+"
+
+    def parser(self, io):
+        for line in io:
+            match = re.match(self.LOADAVG_RE, line)
+            if match:
+                min1, min5, min15 = match.groups()
+            
+                self.metric("system.load.1min", min1)
+                self.metric("system.load.5min", min5)
+                self.metric("system.load.15min", min15)
+
+
 class meminfo(Provider):
     """
     Detailed memory and swap metrics
@@ -9,21 +44,21 @@ class meminfo(Provider):
     file = "/proc/meminfo"
     states = {
         "system.memory.total" : {
-            "title": "Total Memory",
+            "title": "Total",
             "unit": "MiB"
         }
     }
     metrics = {
         "system.memory.active": {
-            "title": "Active Memory",
+            "title": "Active",
             "unit": "MiB"
         },
         "system.memory.inactive": {
-            "title": "Inactive Memory",
+            "title": "Inactive",
             "unit": "MiB"
         },
         "system.memory.free": {
-            "title": "Free Memory",
+            "title": "Free",
             "unit": "MiB"
         }
     }
@@ -53,15 +88,19 @@ class mpstat(Provider):
     command = "mpstat 1 3"
     metrics = {
         "system.cpu.user": {
-            "title": "CPU User",
+            "title": "User",
             "unit": "%"
         },
         "system.cpu.system": {
-            "title": "CPU System",
+            "title": "System",
             "unit": "%"
         },
         "system.cpu.idle": {
-            "title": "CPU Idle",
+            "title": "Idle",
+            "unit": "%"
+        },
+        "system.cpu.io_wait": {
+            "title": "IO Wait",
             "unit": "%"
         }
     }
@@ -83,6 +122,8 @@ class mpstat(Provider):
             self.metric("system.cpu.user", value_for_column(legend, data, "%usr"))
             self.metric("system.cpu.system", value_for_column(legend, data, "%sys"))
             self.metric("system.cpu.idle", value_for_column(legend, data, "%idle"))
+            self.metric("system.cpu.io_wait", value_for_column(legend, data, "%iowait"))
+            self.metric("system.cpu.used", "%.2f" % (100.0 - float(value_for_column(legend, data, "%idle"))))
 
 class iostat(Provider):
     """
@@ -92,22 +133,22 @@ class iostat(Provider):
     command = "iostat -d -x 1 3"
     metrics = {
         "system.disk.read_throughput": {
-            "title": "Disk Read Throughput",
+            "title": "Read Throughput",
             "unit": "B/s",
             "multi": True
         },
         "system.disk.write_throughput": {
-            "title": "Disk Write Throughput",
+            "title": "Write Throughput",
             "unit": "B/s",
             "multi": True
         },
         "system.disk.wait_time": {
-            "title": "Disk Wait Time",
+            "title": "Wait Time",
             "unit": "ms",
             "multi": True
         },
         "system.disk.service_time": {
-            "title": "Disk Service Time",
+            "title": "Service Time",
             "unit": "ms",
             "multi": True
         }
