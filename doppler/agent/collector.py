@@ -52,7 +52,7 @@ class ValueStore:
         with self.lock:
             for item in items:
                 self.items.remove(item)
-        
+
 class Collector:
     DEFAULT_METRICS_ENDPOINT = "http://notify.doppler.io/"
     DEFAULT_SEND_INTERVAL = 30
@@ -75,6 +75,14 @@ class Collector:
         self.metrics_store = ValueStore()
         self.states_store = ValueStore(de_dupe=True)
         self.events_store = ValueStore()
+        
+        # Set up the payload sections
+        self.metrics_payload = {}
+        self.states_payload = {}
+        self.events_payload = {}
+        
+        # Transmission lock, protecting against dual send
+        self.transimission_lock = Lock()
     
         # TODO: Stores should be synced to disk, in case of agent shutdown or ctrl-c
         # See: http://docs.python.org/2/library/shelve.html
@@ -126,22 +134,22 @@ class Collector:
         if not self.active_providers():
             logger.warning("No metrics providers available")
             return
-        
-        metrics_payload = {}
-        states_payload = {}
-        events_payload = {}
 
         # Start all the provider threads
         for provider_class in self.active_providers():
-            provider = provider_class(self.metrics_store, self.states_store, self.events_store)
+            provider = provider_class(self, self.metrics_store, self.states_store, self.events_store)
             provider.daemon = True
             
             if isinstance(provider.metrics, dict):
-                self.deep_update_dict(metrics_payload, provider.metrics)
+                self.deep_update_dict(self.metrics_payload, provider.metrics)
             if isinstance(provider.states, dict):
-                self.deep_update_dict(states_payload, provider.states)
+                self.deep_update_dict(self.states_payload, provider.states)
             if isinstance(provider.events, dict):
-                self.deep_update_dict(events_payload, provider.events)
+                self.deep_update_dict(self.events_payload, provider.events)
+            
+            on_start = getattr(provider, "on_start", None)
+            if callable(on_start):
+                provider.on_start()
             
             provider.start()
         
@@ -155,15 +163,25 @@ class Collector:
             else:
                 time.sleep(self.send_interval)
             
-            # Collect all metrics and metadata collected in the past
+            self.transmit_payload()
+
+    def transmit_payload(self, transmit_all = False):
+        with self.transimission_lock:
             time_collected = int(time.time())
-            completed_metrics = self.metrics_store.get_completed(time_collected)
-            completed_states = self.states_store.get_completed(time_collected)
-            completed_events = self.events_store.get_completed(time_collected)
+            if transmit_all:
+                # Collect all metrics, states and events
+                metrics = self.metrics_store.items
+                states = self.states_store.items
+                events = self.events_store.items
+            else:
+                # Collect all metrics, states and events collected in the past
+                metrics = self.metrics_store.get_completed(time_collected)
+                states = self.states_store.get_completed(time_collected)
+                events = self.events_store.get_completed(time_collected)
             
-            self.add_ts_values(metrics_payload, completed_metrics)
-            self.add_ts_values(states_payload, completed_states)
-            self.add_ts_array(events_payload, completed_events)
+            self.add_ts_values(self.metrics_payload, metrics)
+            self.add_ts_values(self.states_payload, states)
+            self.add_ts_array(self.events_payload, events)
 
             # Attempt to post the snapshots to our server
             body = json.dumps({
@@ -172,9 +190,9 @@ class Collector:
                 "hostname": self.hostname,
                 "collectedTs": time_collected,
                 "sentTs": int(time.time()),
-                "metrics": metrics_payload,
-                "states": states_payload,
-                "events": events_payload
+                "metrics": self.metrics_payload,
+                "states": self.states_payload,
+                "events": self.events_payload
             })
 
             headers = {
@@ -186,14 +204,14 @@ class Collector:
 
             # Check if POST was successful
             if response.code == 200:
-                logger.info("Sent payload to %s (%s metrics, %s states)" % (self.endpoint, len(completed_metrics), len(completed_states)))
+                logger.info("Sent payload to %s (%s metrics, %s states, %s events)" % (self.endpoint, len(metrics), len(states), len(events)))
 
                 # Remove sent values from the stores
-                self.metrics_store.remove(completed_metrics)
-                self.states_store.remove(completed_states)
-                self.events_store.remove(completed_events)
+                self.metrics_store.remove(metrics)
+                self.states_store.remove(states)
+                self.events_store.remove(events)
                 
                 # Clear the payloads
-                metrics_payload.clear()
-                states_payload.clear()
-                events_payload.clear()
+                self.metrics_payload.clear()
+                self.states_payload.clear()
+                self.events_payload.clear()

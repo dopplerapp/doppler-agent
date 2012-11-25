@@ -1,12 +1,12 @@
 import re
+import os
 from doppler.agent.providers import Provider, value_for_column, value_for_regex_column, convert_data_unit, first_matching_line
 
 class loadavg(Provider):
     """
     Load Average
     """
-
-    file = "/proc/loadavg"
+    # TODO:SM Should probably use os.getloadavg() instead :-)
     metrics = {
         "system.load.1min": {
             "title": "1 Minute",
@@ -22,19 +22,13 @@ class loadavg(Provider):
         }
     }
     interval = 10
-
-    LOADAVG_RE = r"^([0-9]*\.?[0-9]*)\s+([0-9]*\.?[0-9]*)\s+([0-9]*\.?[0-9]*)\s+"
-
-    def parser(self, io):
-        for line in io:
-            match = re.match(self.LOADAVG_RE, line)
-            if match:
-                min1, min5, min15 = match.groups()
-            
-                self.metric("system.load.1min", min1)
-                self.metric("system.load.5min", min5)
-                self.metric("system.load.15min", min15)
-
+    
+    def fetch_value(self):
+        load_avg = os.getloadavg()
+        self.metric("system.load.1min", load_avg[0])
+        self.metric("system.load.5min", load_avg[1])
+        self.metric("system.load.15min", load_avg[2])
+        
 
 class meminfo(Provider):
     """
@@ -80,6 +74,36 @@ class meminfo(Provider):
         self.metric("system.memory.active", convert_data_unit(meminfo_metrics["Active"], output_unit="MiB"))
         self.metric("system.memory.inactive", convert_data_unit(meminfo_metrics["Inactive"], output_unit="MiB"))
 
+class ps(Provider):
+    command = "ps aux"
+    states = {
+        "system.cpu.top_process": {
+            "title": "Process with highest CPU usage",
+            "hidden": True
+        }
+    }
+    interval = 10
+    
+    def parser(self, io):
+        highest_cpu = None
+        process = None
+        for line in io:
+            try:
+                elements = line.split()
+                cpu_usage = float(elements[2])
+                if highest_cpu == None or highest_cpu < cpu_usage:
+                    highest_cpu = cpu_usage
+                    if len(elements) == 11:
+                        process = elements[-1]
+                    else:
+                        process = " ".join(elements[10:-1])
+            except ValueError:
+                pass
+            
+        if process:
+            print process
+            self.state("system.cpu.top_process", process)
+
 class mpstat(Provider):
     """
     CPU related statistics sampled over a defined period
@@ -89,6 +113,10 @@ class mpstat(Provider):
     metrics = {
         "system.cpu.user": {
             "title": "User",
+            "unit": "%"
+        },
+        "system.cpu.used": {
+            "title": "Used",
             "unit": "%"
         },
         "system.cpu.system": {

@@ -78,12 +78,14 @@ class Provider(threading.Thread):
     file = None
     interval = 5
 
-    def __init__(self, metrics_store, states_store, events_store):
+    def __init__(self, collector, metrics_store, states_store, events_store):
         threading.Thread.__init__(self)
         
         self.metrics_store = metrics_store
         self.states_store = states_store
         self.events_store = events_store
+        
+        self.collector = collector
 
         if self.metrics is None and self.events is None and self.states is None:
             raise Exception("Children must override one of metrics, events or states")
@@ -104,15 +106,19 @@ class Provider(threading.Thread):
         if self.interval is None:
             self.begin()
         else:
-            while continuous and self.interval:
+            while continuous:
                 if self.command:
+                    p = None
                     try:
                         p = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE)
                         self.parser(p.stdout)
                     finally:
-                        p.stdout.close()
+                        if p:
+                            p.stdout.close()
                 elif self.file:
                     with open(self.file) as f:
                         self.parser(f)
+                else:
+                    self.fetch_value()
 
                 time.sleep(self.interval)
