@@ -110,7 +110,7 @@ class Provider(threading.Thread):
                 if self.command:
                     p = None
                     try:
-                        p = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE)
+                        p = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         self.parser(p.stdout)
                     finally:
                         if p:

@@ -23,7 +23,7 @@ class redisInfo(Provider):
 
     def fetch_value(self):
         if distutils.spawn.find_executable("redis-cli"):
-            p = subprocess.Popen(("redis-cli", "info"), stdout=subprocess.PIPE)
+            p = subprocess.Popen(("redis-cli", "info"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             for line in p.stdout:
                 if line.startswith("redis_version:"):
                     version = line.split(':')[1]
