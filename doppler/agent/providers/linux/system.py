@@ -82,6 +82,12 @@ class ps(Provider):
             "hidden": True
         }
     }
+    metrics = {
+        "system.cpu.top_process_usage": {
+            "title": "CPU Usage",
+            "unit": "%"
+        }
+    }
     interval = 10
     
     def parser(self, io):
@@ -103,6 +109,7 @@ class ps(Provider):
         if process:
             print process
             self.state("system.cpu.top_process", process)
+            self.metric("system.cpu.top_process_usage", highest_cpu)
 
 class mpstat(Provider):
     """

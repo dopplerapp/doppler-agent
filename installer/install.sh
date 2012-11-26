@@ -134,7 +134,7 @@ install_packages "python python-setuptools sysstat"
 # Download Doppler agent
 track_progress "downloading-agent" "Downloading latest Doppler agent"
 if command_exists easy_install ; then
-  sudo easy_install --script-dir=/usr/bin doppler-agent
+  sudo easy_install --script-dir=/usr/bin .
 
   if [ $? -ne 0 ] ; then
     track_error "Could not install the Doppler python gem (easy_install failed)"

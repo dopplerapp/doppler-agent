@@ -8,10 +8,10 @@ class events(Provider):
 
     events = {
         "agent.started": {
-            "title": "Agent Started",
+            "title": "Doppler Agent Started",
         },
         "agent.stopped": {
-            "title": "Agent Stopped"
+            "title": "Doppler Agent Stopped"
         }
     }
     interval = None
@@ -27,6 +27,7 @@ class events(Provider):
         signal.signal(signal.SIGINT, self.agent_stopped_handler)
         signal.signal(signal.SIGTERM, self.agent_stopped_handler)
         self.event("agent.started")
+        self.collector.transmit_payload(True)
         
     def begin(self):
         # All events are logged in on_start
