@@ -107,7 +107,6 @@ class ps(Provider):
                 pass
             
         if process:
-            print process
             self.state("system.cpu.top_process", process)
             self.metric("system.cpu.top_process_usage", highest_cpu)
 
@@ -151,7 +150,10 @@ class mpstat(Provider):
         data_line = first_matching_line(lines, self.DATA_RE)
 
         if legend_line and data_line:
-            legend = legend_line.split()[3:]
+            if legend_line[1].lower() == "am" or legend_line[1].lower() == "pm":
+                legend = legend_line.split()[3:]
+            else:
+                legend = legend_line.split()[2:]
             data = data_line.split()[2:]
             
             self.metric("system.cpu.user", value_for_column(legend, data, "%usr"))

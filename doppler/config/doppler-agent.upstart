@@ -9,5 +9,5 @@ respawn
 respawn limit 99 5
 
 script
-    exec /usr/bin/doppler-agent.py
+    exec /usr/bin/doppler-agent.py 2>> /tmp/doppler.out 1>> /tmp/doppler.err
 end script
