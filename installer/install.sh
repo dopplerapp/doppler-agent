@@ -15,9 +15,10 @@
 
 # Installer configuration
 VERSION="0.1.0"
-API_KEY=${API_KEY:-"YOUR-API-KEY-HERE"}
-PROGRESS_SERVER=${PROGRESS_SERVER:-"http://get.doppler.io"}
+API_KEY=${API_KEY:-"YOUR-API-KEY-HERE""}
+PROGRESS_SERVER=${PROGRESS_SERVER:-"http://get.doppler.dev"}
 PROGRESS_URL="$PROGRESS_SERVER/$API_KEY"
+NOTIFY_SERVER=${NOTIFY_SERVER:-"http://notify.doppler.dev"}
 APIKEY_CHECK_URL="$PROGRESS_URL/check"
 
 # Check if a file exists
@@ -134,7 +135,7 @@ install_packages "python python-setuptools sysstat"
 # Download Doppler agent
 track_progress "downloading-agent" "Downloading latest Doppler agent"
 if command_exists easy_install ; then
-  sudo easy_install --script-dir=/usr/bin .
+  sudo easy_install --script-dir=/usr/bin doppler-agent
 
   if [ $? -ne 0 ] ; then
     track_error "Could not install the Doppler python gem (easy_install failed)"
@@ -146,7 +147,7 @@ fi
 # Run initial agent configuration
 track_progress "configuring-agent" "Running initial agent configuration"
 if command_exists doppler-configure.py ; then
-  sudo doppler-configure.py --api-key $API_KEY --generate-config
+  sudo doppler-configure.py --api-key $API_KEY --endpoint $NOTIFY_SERVER --generate-config
   if [ $? -ne 0 ] ; then
     track_error "Couldn't configure the agent (doppler-configure failed)"
   fi

@@ -22,6 +22,12 @@ parser.add_option(
     help="Specify API key to use for config generation",
 )
 parser.add_option(
+    "-e", "--endpoint", 
+    dest="endpoint",
+    help="Specify endpoint to use for sending metrics",
+    default="http://notify.doppler.io",
+)
+parser.add_option(
     "-g", "--generate-config", 
     action="store_true",
     dest="generate_config",
@@ -79,7 +85,7 @@ if options.generate_config:
             config = None
             with open(os.path.join(CONFIG_TEMPLATES_PATH, "doppler-agent.conf")) as f:            
                 config_template = f.read()
-                config = Template(config_template).substitute(api_key=options.api_key)
+                config = Template(config_template).substitute(api_key=options.api_key, endpoint=options.endpoint)
 
             # Write the new config file
             with open(DEFAULT_CONFIG_PATH, "w") as f:
